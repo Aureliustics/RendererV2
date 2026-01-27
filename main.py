@@ -7,6 +7,8 @@ import sdl2.ext
 # https://lukems.github.io/py-sdl2/modules/index.html for docs
 
 WINDOW_SIZE = 400
+WIDTH = WINDOW_SIZE
+HEIGHT = WINDOW_SIZE
 
 # init the window
 SDL_Init(SDL_INIT_VIDEO)
@@ -18,6 +20,21 @@ window = SDL_CreateWindow(
     SDL_WINDOW_SHOWN
 )
 renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE)
+texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+                            SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT)
+
+# init frame buffer
+framebuffer = (ctypes.c_uint32 * (WIDTH * HEIGHT))() # ctypes.c_uint32 since each pixel is a 32 bit int
+
+# fill each pixel with white, could prob make this the clear function later too
+for i in range(WIDTH * HEIGHT):
+    framebuffer[i] = 0xFFFFFFFF  # white in argb (alpha, red, green, blue)
+
+# displaying the frame buffer onto the screen (do not remove)
+SDL_UpdateTexture(texture, None, framebuffer, WIDTH * 4) # copies buffer memory into SDL texture
+SDL_RenderClear(renderer) # clear last frame
+SDL_RenderCopy(renderer, texture, None, None) # draw the pixels to window
+SDL_RenderPresent(renderer) # present the pixels
 
 running = True
 while running:
