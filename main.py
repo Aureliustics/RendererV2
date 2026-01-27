@@ -10,6 +10,11 @@ WINDOW_SIZE = 400
 WIDTH = WINDOW_SIZE
 HEIGHT = WINDOW_SIZE
 
+WHITE = 0xFFFFFFFF
+GREEN = 0x05871fa
+LIGHT_BLUE = 0x23accf
+
+
 # init the window
 SDL_Init(SDL_INIT_VIDEO)
 window = SDL_CreateWindow(
@@ -28,13 +33,33 @@ framebuffer = (ctypes.c_uint32 * (WIDTH * HEIGHT))() # ctypes.c_uint32 since eac
 
 # fill each pixel with white, could prob make this the clear function later too
 for i in range(WIDTH * HEIGHT):
-    framebuffer[i] = 0xFFFFFFFF  # white in argb (alpha, red, green, blue)
+    framebuffer[i] = WHITE  # white in argb (alpha, red, green, blue)
 
 # displaying the frame buffer onto the screen (do not remove)
 SDL_UpdateTexture(texture, None, framebuffer, WIDTH * 4) # copies buffer memory into SDL texture
 SDL_RenderClear(renderer) # clear last frame
 SDL_RenderCopy(renderer, texture, None, None) # draw the pixels to window
 SDL_RenderPresent(renderer) # present the pixels
+
+def pixel(x, y, colour):
+    if 0 <= x < WIDTH and 0 <= y < HEIGHT:
+        framebuffer[y * WIDTH + x] = colour
+
+# unfinished
+def draw_line(x0, x1, y0, y1, colour): # draw line using point intercept form
+    dx = abs(x1 - x0) # dx = delta x (change in x) dy = delta y (change in y)
+    dy = abs(y1 - y0)
+    sx = 1 if x0 < x1 else -1
+    sy = 1 if y0 < y1 else -1
+    err = dx - dy
+
+    while True:
+        pixel(x0, y0, colour)
+        if x0 == x1 and y0 == y1:
+            break
+        # implement err calculations later
+        
+
 
 running = True
 while running:
@@ -43,18 +68,30 @@ while running:
         if event.type == SDL_QUIT:
             running = False
     # not great looking but i am still figuring out key inputs
-    keys = SDL_GetKeyboardState(None)
-    if keys[SDL_SCANCODE_W]:
+    onkey = SDL_GetKeyboardState(None)
+    if onkey[SDL_SCANCODE_W]:
         print("W")
-    if keys[SDL_SCANCODE_S]:
+    if onkey[SDL_SCANCODE_S]:
         print("S")
-    if keys[SDL_SCANCODE_A]:
+    if onkey[SDL_SCANCODE_A]:
         print("A")
-    if keys[SDL_SCANCODE_D]:
+    if onkey[SDL_SCANCODE_D]:
         print("D")
-    if keys[SDL_SCANCODE_SPACE]:
+    if onkey[SDL_SCANCODE_SPACE]:
         print("Space")
-    if keys[SDL_SCANCODE_LCTRL]:
+    if onkey[SDL_SCANCODE_LCTRL]:
         print("Ctrl")
+
+def commandLine():
+    global debug
+    cmd = str(input(""))
+    
+    if cmd == "debug":
+        debug = not debug
+        #render_objects() replace with renderstep equiv
+    
+    commandLine()
+    
+commandLine()
 
 SDL_Quit()
