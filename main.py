@@ -11,7 +11,7 @@ WIDTH = WINDOW_SIZE
 HEIGHT = WINDOW_SIZE
 
 WHITE = 0xFFFFFFFF
-GREEN = 0x05871fa
+GREEN = 0x05871f
 LIGHT_BLUE = 0x23accf
 
 
@@ -49,16 +49,21 @@ def pixel(x, y, colour):
 def draw_line(x0, x1, y0, y1, colour): # draw line using point intercept form
     dx = abs(x1 - x0) # dx = delta x (change in x) dy = delta y (change in y)
     dy = abs(y1 - y0)
-    sx = 1 if x0 < x1 else -1
-    sy = 1 if y0 < y1 else -1
+    sx = 1 if x0 < x1 else -1 # sx (step x) to step right (1) when x1 better than x0 else step left (-1) 
+    sy = 1 if y0 < y1 else -1 # sy (step y) to step up (1) when x1 better than x0 else step down (-1) 
     err = dx - dy
 
     while True:
         pixel(x0, y0, colour)
         if x0 == x1 and y0 == y1:
             break
-        # implement err calculations later
-        
+        e2 = 2 * err
+        if e2 > -dy: # if error is large enough to step into x dir
+            err -= dy
+            x0 += sx
+        if e2 < dx: # if error is large enough to step into y dir
+            err += dy
+            y0 += sy
 
 
 running = True
