@@ -28,43 +28,51 @@ renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE)
 texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                             SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT)
 
-# init frame buffer
+# init frame buffer (think abt the frame buffer like a jiba image file, it stores pixel colour data from top left to bottom right of the screen)
+# the frame buffer is just our 1 dimensional chunk of memory which we can tell SDL to interpret it as pixels. SDL then copies that to the GPU where it is displayed
 framebuffer = (ctypes.c_uint32 * (WIDTH * HEIGHT))() # ctypes.c_uint32 since each pixel is a 32 bit int
 
-# fill each pixel with white, could prob make this the clear function later too
-for i in range(WIDTH * HEIGHT):
-    framebuffer[i] = WHITE  # white in argb (alpha, red, green, blue)
+def renderStep():
+    # displaying the frame buffer onto the screen (do not remove)
+    SDL_UpdateTexture(texture, None, framebuffer, WIDTH * 4) # copies buffer memory into SDL texture
+    SDL_RenderClear(renderer) # clear last frame
+    SDL_RenderCopy(renderer, texture, None, None) # draw the pixels to window
+    SDL_RenderPresent(renderer) # present the pixels
 
-# displaying the frame buffer onto the screen (do not remove)
-SDL_UpdateTexture(texture, None, framebuffer, WIDTH * 4) # copies buffer memory into SDL texture
-SDL_RenderClear(renderer) # clear last frame
-SDL_RenderCopy(renderer, texture, None, None) # draw the pixels to window
-SDL_RenderPresent(renderer) # present the pixels
+def clear():
+# fill each pixel with white, could prob make this the clear function later too
+    for i in range(WIDTH * HEIGHT):
+        framebuffer[i] = WHITE  # white in argb (alpha, red, green, blue)
+    renderStep()
+clear()
 
 def pixel(x, y, colour):
     if 0 <= x < WIDTH and 0 <= y < HEIGHT:
         framebuffer[y * WIDTH + x] = colour
 
-# unfinished
-def draw_line(x0, x1, y0, y1, colour): # draw line using point intercept form
-    dx = abs(x1 - x0) # dx = delta x (change in x) dy = delta y (change in y)
-    dy = abs(y1 - y0)
+# using bresenhams line algorithm we can determine how to rasterize each pixel in a line.
+def draw_line(x0, y0, x1, y1, colour): # draw line using point intercept form
+    dx = abs(x1 - x0) # dx = delta x (change in x/how far the line goes in x direction)
+    dy = abs(y1 - y0) 
     sx = 1 if x0 < x1 else -1 # sx (step x) to step right (1) when x1 better than x0 else step left (-1) 
     sy = 1 if y0 < y1 else -1 # sy (step y) to step up (1) when x1 better than x0 else step down (-1) 
     err = dx - dy
 
     while True:
         pixel(x0, y0, colour)
-        if x0 == x1 and y0 == y1:
+        if x0 == x1 and y0 == y1: # if end point is reached, stop drawing
             break
-        e2 = 2 * err
+        # err or the error term is how much the line deviates from a perfect mathematical line
+        e2 = 2 * err # double to avoid floats which are costly in performance
         if e2 > -dy: # if error is large enough to step into x dir
             err -= dy
             x0 += sx
         if e2 < dx: # if error is large enough to step into y dir
-            err += dy
+            err += dx
             y0 += sy
 
+draw_line(0, 0, WIDTH - 1, HEIGHT - 1, GREEN) # testing a diagonal line
+renderStep()
 
 running = True
 while running:
@@ -86,7 +94,7 @@ while running:
         print("Space")
     if onkey[SDL_SCANCODE_LCTRL]:
         print("Ctrl")
-
+''' uhh change this later or it will hang cuz its an infinite recursion
 def commandLine():
     global debug
     cmd = str(input(""))
@@ -98,5 +106,5 @@ def commandLine():
     commandLine()
     
 commandLine()
-
+'''
 SDL_Quit()

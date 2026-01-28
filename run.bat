@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-dist\main.exe
+dist\renderer.exe
 pause
