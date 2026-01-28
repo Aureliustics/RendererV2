@@ -12,7 +12,7 @@ https://lukems.github.io/py-sdl2/modules/index.html for docs
 
 todo: Mouse movements for camera pitch and yaw instead of IJKL
 '''
-WINDOW_SIZE = 800
+WINDOW_SIZE = 400
 WIDTH = WINDOW_SIZE
 HEIGHT = WINDOW_SIZE
 
@@ -20,7 +20,6 @@ WHITE = 0xFFFFFFFF
 GREEN = 0x05871f
 LIGHT_BLUE = 0x23accf
 RED = 0xf70000
-scale = 300
 FOV = 90
 scale = (HEIGHT / 2) / math.tan(math.radians(FOV) / 2) # the projective proj scaling factor (higher = less stretched, lower = more stretch)
 
