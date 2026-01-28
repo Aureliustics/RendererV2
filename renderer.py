@@ -12,7 +12,7 @@ https://lukems.github.io/py-sdl2/modules/index.html for docs
 
 todo: Mouse movements for camera pitch and yaw instead of IJKL
 '''
-WINDOW_SIZE = 400
+WINDOW_SIZE = 800
 WIDTH = WINDOW_SIZE
 HEIGHT = WINDOW_SIZE
 
@@ -20,7 +20,9 @@ WHITE = 0xFFFFFFFF
 GREEN = 0x05871f
 LIGHT_BLUE = 0x23accf
 RED = 0xf70000
-
+scale = 300
+FOV = 90
+scale = (HEIGHT / 2) / math.tan(math.radians(FOV) / 2) # the projective proj scaling factor (higher = less stretched, lower = more stretch)
 
 # init the window
 SDL_Init(SDL_INIT_VIDEO)
@@ -29,7 +31,7 @@ window = SDL_CreateWindow(
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
     WINDOW_SIZE, WINDOW_SIZE,
-    SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+    SDL_WINDOW_SHOWN
 )
 renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED)
 texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT)
@@ -180,9 +182,9 @@ def move_camera(direction, speed):
     elif direction == "right":
         new_position = [camera_pos[0] + move_speed, camera_pos[1], camera_pos[2]]
     elif direction == "up" and flying:
-        new_position = [camera_pos[0], camera_pos[1] + move_speed, camera_pos[2]]   # jump
+        new_position = [camera_pos[0], camera_pos[1] - move_speed, camera_pos[2]]   # jump
     elif direction == "down" and flying:
-        new_position = [camera_pos[0], camera_pos[1] - move_speed, camera_pos[2]]   # crouch
+        new_position = [camera_pos[0], camera_pos[1] + move_speed, camera_pos[2]]   # crouch
     else:
         return
     if not check_collision(new_position) or not collision:
@@ -249,6 +251,9 @@ def rotate_camera(direction, degrees):
         ]
         rotate_object("Y", -2)  # counter act the world rotation with object rotation
 
+    if rotation_matrix is None: # catch crash if rotation matrix is None
+        return
+    
     # loop through each block and apply the rotation
     for obj in objects:
         position = obj["position"]
@@ -277,19 +282,33 @@ def rotate_camera(direction, degrees):
         # update the objects position
         obj["position"] = new_position
 
-# render all objects based on camera position and rotation
-def render_objects():
+def rotate_vertex(vertex_x, vertex_y, vertex_z, sin_pitch, cos_pitch, sin_yaw, cos_yaw):
+    # rotate camera pitch (x axis)
+    rotated_y = vertex_y * cos_pitch - vertex_z * sin_pitch
+    rotated_z = vertex_y * sin_pitch + vertex_z * cos_pitch
+
+    #rotate camera yaw (y axis)
+    rotated_x = vertex_x * cos_yaw + rotated_z * sin_yaw
+    rotated_z = -vertex_x * sin_yaw + rotated_z * cos_yaw
+
+    return rotated_x, rotated_y, rotated_z
+
+def render_objects(): # new render pipeline: now takes all objs, transforms the vertices, projects them to 2D, then rasterizes edges
     global frame_count, last_time
     clear()
-    
-    # calculate rotation matrices for X and Y axis
-    rotationX = [[1, 0, 0],
-                 [0, math.cos(math.radians(object_rot[0])), -math.sin(math.radians(object_rot[0]))],
-                 [0, math.sin(math.radians(object_rot[0])), math.cos(math.radians(object_rot[0]))]]
 
-    rotationY = [[math.cos(math.radians(object_rot[1])), 0, math.sin(math.radians(object_rot[1]))],
-                 [0, 1, 0],
-                 [-math.sin(math.radians(object_rot[1])), 0, math.cos(math.radians(object_rot[1]))]]
+    camera_x, camera_y, camera_z = camera_pos
+    camera_pitch, camera_yaw = object_rot
+
+    # optimized this so that it precalculates trig values once per frame
+    sin_pitch = math.sin(math.radians(camera_pitch))
+    cos_pitch = math.cos(math.radians(camera_pitch))
+    sin_yaw = math.sin(math.radians(camera_yaw))
+    cos_yaw = math.cos(math.radians(camera_yaw))
+
+    # need the get to center of the screen to properly project
+    screen_center_x = WIDTH // 2
+    screen_center_y = HEIGHT // 2
     
     # calculate Z distance from camera for each object (for sorting block distance)
     objects_with_distance = []
@@ -300,7 +319,7 @@ def render_objects():
         dz = position[2] - camera_pos[2] # dz means distance z
         distance = math.sqrt(dx**2 + dy**2 + dz**2) # get euclidean distance
         objects_with_distance.append((obj, distance))
-
+        
     # use bubble sort to sort by descending distance
     def bubble_sort_descending(arr):
         n = len(arr)
@@ -310,110 +329,38 @@ def render_objects():
                     arr[j], arr[j + 1] = arr[j + 1], arr[j]
 
     bubble_sort_descending(objects_with_distance)
+    for obj, distance in objects_with_distance:
+        object_x, object_y, object_z = obj["position"] # grab coordinates of the object
 
-    '''
-    def partition(arr, low, high):
-        pivot = arr[high]
-        i = low - 1
-        for j in range(low, high):
-            if arr[j] <= pivot:
-                i += 1
-                arr[i], arr[j] = arr[j], arr[i]
-        arr[i + 1], arr[high] = arr[high], arr[i + 1]
-        return i + 1
-    
-    def quick_sort(arr, low, high):
-        if low < high:
-            p = partition(arr, low, high)
-            quick_sort(arr, low, p - 1)
-            quick_sort(arr, p + 1, high)
-    
-    print(objects_with_distance)
-    quick_sort(objects_with_distance, 0, len(objects_with_distance) - 1)
-    '''
-    # get sorted objects
-    sorted_objects = [obj for obj, i in objects_with_distance]
-    
-    # loop apply matrix math, clipping, and colour to each object
-    for obj in sorted_objects:
-        position = obj["position"]
-        projected_vertices = []
-        # loop through vertices and translate 3d matrix to 2d
-        for Vertex in Vertices:
-            xRotation = matrix_multiply(rotationX, [[Vertex[0]], [Vertex[1]], [Vertex[2]]])
-            yRotation = matrix_multiply(rotationY, xRotation)
-            # apply camera translation
-            xPos = yRotation[0][0] + position[0] - camera_pos[0]
-            yPos = yRotation[1][0] + position[1] - camera_pos[1]
-            zPos = yRotation[2][0] + position[2] - camera_pos[2]
-            # apply perspective projection. i didnt use the perspective_projection() function here
-            if zPos != 0:
-                x_screen = (xPos / zPos) * 300  # you can increase or decrease the multiplier to adjust scale
-                y_screen = (yPos / zPos) * 300 # I found that increasing this from 100 to 300 made the fov stretch less extreme
+        projected_vertices = [None] * len(Vertices) # store the projected 2D pos for each vertex
 
-                x_screen += WIDTH // 2
-                y_screen += HEIGHT // 2
-            else:
-                x_screen, y_screen = 0, 0
-            # apply clipping. without this you will see 2 objects, if its half way clipped.
-            if zPos < near_clip or zPos > far_clip: 
+        for vertex_index, (vertex_x, vertex_y, vertex_z) in enumerate(Vertices):
+            # rotate based on orientation of camera
+            rotated_x, rotated_y, rotated_z = rotate_vertex(vertex_x, vertex_y, vertex_z, sin_pitch, cos_pitch, sin_yaw, cos_yaw)
+
+            # translate each vertex to camera space
+            camera_space_x = rotated_x + object_x - camera_x
+            camera_space_y = rotated_y + object_y - camera_y
+            camera_space_z = rotated_z + object_z - camera_z
+
+            # new clipping implemented for camera space system
+            if camera_space_z <= near_clip or camera_space_z >= far_clip:
                 continue
-            # store projected vertex
-            projected_vertices.append([x_screen, y_screen, zPos])
-        
-        face_color = obj.get("color", "white") # later add another attribute for colour for each individual block
-        faces = [
-            [0, 1, 2, 3],  # front face
-            [4, 5, 6, 7],  # back face
-            [0, 1, 5, 4],  # bottom face
-            [2, 3, 7, 6],  # top face
-            [0, 3, 7, 4],  # left face
-            [1, 2, 6, 5]   # right face
-        ]
-        
-        for face in faces:  # do for each face of object
-            # getting each vertex of each face
-            try:
-                p1, p2, p3, p4 = [projected_vertices[idx] for idx in face]
-            except IndexError:
-                continue  # skip face if it has been despawned/clipped
-        
-            # check if any vertex is invalid or out of the clipping range (z < near_clip or z > far_clip)
-            invalid_face = False
-            for p in [p1, p2, p3, p4]:
-                if p is None or p[2] < near_clip or p[2] > far_clip:
-                    invalid_face = True
-                    break
-        
-            if invalid_face:
-                continue  # skip rendering this face if any vertex is invalid or out of range
-        
-            # draw connection points, later add a substitute for filling colours
-            draw_line(p1[0], p1[1], p2[0], p2[1], 0xFF000000)
-            draw_line(p2[0], p2[1], p3[0], p3[1], 0xFF000000)
-            draw_line(p3[0], p3[1], p4[0], p4[1], 0xFF000000)
-            draw_line(p4[0], p4[1], p1[0], p1[1], 0xFF000000)
-   
-        for edge in edges: # basically connection points. thats what edges are
-            p1_idx, p2_idx = edge # idx means index
-            if p1_idx < len(projected_vertices) and p2_idx < len(projected_vertices):
-                p1 = projected_vertices[p1_idx]
-                p2 = projected_vertices[p2_idx]
-                draw_line(p1[0], p1[1], p2[0], p2[1], 0xFF000000) # draw edges, replace setposition
-                
-        if debug:
-            collision_text = "Collision Enabled" if obj.get("collision", True) else "Collision Disabled"
-            label_color = "green" if obj.get("collision", True) else "red"
-            ''' dont know how to do write() equivilant so commented out for now
-            penup()
-            color(label_color)
-            write(collision_text, align="left", font=("Lucida Console", 9, "normal"))
-            penup()
-            '''
-    # clear screen if no vertices are visible
-    if len(projected_vertices) == 0:
-        clear()
-    #game_ui() # call game ui, this will include hotbar, crosshair, health, armour, food, view model etc
+
+            # apply perspective projection then store the projected vertices
+            screen_x = int((camera_space_x / camera_space_z) * scale + screen_center_x)
+            screen_y = int((camera_space_y / camera_space_z) * scale + screen_center_y)
+
+            projected_vertices[vertex_index] = (screen_x, screen_y)
+
+        # draw each edge/connection points of the cube using projected vertices
+        for edge_start, edge_end in edges:
+            start_point = projected_vertices[edge_start]
+            end_point = projected_vertices[edge_end]
+
+            # only draw edges/connection points where both vertices are valid
+            if start_point and end_point:
+                draw_line(start_point[0], start_point[1], end_point[0], end_point[1], 0xFF000000)
     renderStep()
 
     frame_count += 1
