@@ -3,3 +3,5 @@ C:\Users\<USERNAME>\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation
 If you don't see a dist folder, run "pyinstaller renderer.py"
 
 Terminal stuff to run: .\compile.bat to compile to .exe in dist folder, .\run.bat to run the .exe
+
+python renderer.py to debug. If its all good, then .\compile

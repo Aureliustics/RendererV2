@@ -6,13 +6,14 @@ import sdl2.ext
 # rules for codebase: use SCREAMING_SNAKE_CASE for constants
 # https://lukems.github.io/py-sdl2/modules/index.html for docs
 
-WINDOW_SIZE = 400
+WINDOW_SIZE = 900
 WIDTH = WINDOW_SIZE
 HEIGHT = WINDOW_SIZE
 
 WHITE = 0xFFFFFFFF
 GREEN = 0x05871f
 LIGHT_BLUE = 0x23accf
+RED = 0xf70000
 
 
 # init the window
@@ -22,11 +23,10 @@ window = SDL_CreateWindow(
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
     WINDOW_SIZE, WINDOW_SIZE,
-    SDL_WINDOW_SHOWN
+    SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
 )
 renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE)
-texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-                            SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT)
+texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT)
 
 # init frame buffer (think abt the frame buffer like a jiba image file, it stores pixel colour data from top left to bottom right of the screen)
 # the frame buffer is just our 1 dimensional chunk of memory which we can tell SDL to interpret it as pixels. SDL then copies that to the GPU where it is displayed
@@ -52,12 +52,9 @@ def pixel(x, y, colour):
 
 # using bresenhams line algorithm we can determine how to rasterize each pixel in a line.
 def draw_line(x0, y0, x1, y1, colour): # draw line using point intercept form
-    x0 = int(x0)
-    y0 = int(y0)
-    x1 = int(x1)
-    x0 = int(x0)
     dx = abs(x1 - x0) # dx = delta x (change in x/how far the line goes in x direction)
     dy = abs(y1 - y0) 
+    x0, y0, x1, y1 = int(x0), int(y0), int(x1), int(y1) # cast all to int (you cant have a fraction of a pixel)
     sx = 1 if x0 < x1 else -1 # sx (step x) to step right (1) when x1 better than x0 else step left (-1) 
     sy = 1 if y0 < y1 else -1 # sy (step y) to step up (1) when x1 better than x0 else step down (-1) 
     err = dx - dy
@@ -76,6 +73,9 @@ def draw_line(x0, y0, x1, y1, colour): # draw line using point intercept form
             y0 += sy
 
 draw_line(0, 0, WIDTH - 1, HEIGHT - 1, GREEN) # testing a diagonal line
+draw_line(WIDTH // 2, 0, WIDTH // 2, HEIGHT - 1, LIGHT_BLUE) # vertical line
+draw_line(0, HEIGHT // 2, WIDTH - 1, HEIGHT // 2, RED)
+
 renderStep()
 
 running = True
