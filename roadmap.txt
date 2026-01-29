@@ -6,3 +6,5 @@ Todo:
 - Implement texture system (with a texture atlas prob)
 - Implement polygons and coloured faces
 - Implement shading
+- Implement .j3d files to easily store and load 3d models in game
+- Update .j3d files to include textures and color data (as it currently just ignores that)
