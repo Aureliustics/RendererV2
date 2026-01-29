@@ -1,5 +1,6 @@
 Todo:
 - Delta time for consistent movement speed
+- VSync or just an fps limiter to test if delta time works
 - Dynamic window size
 - Prompt for window size (with PYSDL2 messagebox)
 - Modularize render components to work with more than 1 file. (Will probably have a game.py file)

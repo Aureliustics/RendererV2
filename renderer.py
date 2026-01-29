@@ -319,6 +319,7 @@ def render_objects(): # new render pipeline: now takes all objs, transforms the 
         distance = math.sqrt(dx**2 + dy**2 + dz**2) # get euclidean distance
         objects_with_distance.append((obj, distance))
         
+    '''
     # use bubble sort to sort by descending distance
     def bubble_sort_descending(arr):
         n = len(arr)
@@ -328,6 +329,9 @@ def render_objects(): # new render pipeline: now takes all objs, transforms the 
                     arr[j], arr[j + 1] = arr[j + 1], arr[j]
 
     bubble_sort_descending(objects_with_distance)
+    '''
+    objects_with_distance.sort(key = lambda pair: pair[1], reverse = True) # replace bubblesort for timsort (cuz its built into py and faster)
+    
     for obj, distance in objects_with_distance:
         object_x, object_y, object_z = obj["position"] # grab coordinates of the object
 
