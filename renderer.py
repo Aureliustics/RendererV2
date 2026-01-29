@@ -167,24 +167,22 @@ def check_collision(new_position):
 def move_camera(direction, speed):
     global camera_pos, sprinting, move_speed, debug, collision, flying
     if direction == "forward" and not sprinting:
-        move_speed = 0.5
-        new_position = [camera_pos[0], camera_pos[1], camera_pos[2] + move_speed]
+        new_position = [camera_pos[0], camera_pos[1], camera_pos[2] + speed]
     elif direction == "forward" and sprinting:
         if speed < 1:
             move_speed += 0.1
-        new_position = [camera_pos[0], camera_pos[1], camera_pos[2] + move_speed]
+        new_position = [camera_pos[0], camera_pos[1], camera_pos[2] + speed]
     elif direction == "backward":
         sprinting = False
-        move_speed = 0.5
-        new_position = [camera_pos[0], camera_pos[1], camera_pos[2] - move_speed]
+        new_position = [camera_pos[0], camera_pos[1], camera_pos[2] - speed]
     elif direction == "left":
-        new_position = [camera_pos[0] - move_speed, camera_pos[1], camera_pos[2]]
+        new_position = [camera_pos[0] - speed, camera_pos[1], camera_pos[2]]
     elif direction == "right":
-        new_position = [camera_pos[0] + move_speed, camera_pos[1], camera_pos[2]]
+        new_position = [camera_pos[0] + speed, camera_pos[1], camera_pos[2]]
     elif direction == "up" and flying:
-        new_position = [camera_pos[0], camera_pos[1] - move_speed, camera_pos[2]]   # jump
+        new_position = [camera_pos[0], camera_pos[1] - speed, camera_pos[2]]   # jump
     elif direction == "down" and flying:
-        new_position = [camera_pos[0], camera_pos[1] + move_speed, camera_pos[2]]   # crouch
+        new_position = [camera_pos[0], camera_pos[1] + speed, camera_pos[2]]   # crouch
     else:
         return
     if not check_collision(new_position) or not collision:
@@ -380,7 +378,8 @@ render_objects()  # render the initial frame
 
 running = True
 while running:
-    delta_time = (time.time() - last_delta_time) * 100000
+    delta_time = (time.perf_counter() - last_delta_time) * 100
+    last_delta_time = time.perf_counter()
 
     event = SDL_Event()
     while SDL_PollEvent(ctypes.byref(event)):
@@ -388,12 +387,12 @@ while running:
             running = False
     # not great looking but i am still figuring out key inputs
     onkey = SDL_GetKeyboardState(None)
-    if onkey[SDL_SCANCODE_W]: move_camera("forward", move_speed)
-    if onkey[SDL_SCANCODE_S]: move_camera("backward", move_speed)
-    if onkey[SDL_SCANCODE_A]: move_camera("left", move_speed)
-    if onkey[SDL_SCANCODE_D]: move_camera("right", move_speed)
-    if onkey[SDL_SCANCODE_SPACE]: move_camera("up", move_speed)
-    if onkey[SDL_SCANCODE_LCTRL]: move_camera("down", move_speed)
+    if onkey[SDL_SCANCODE_W]: move_camera("forward", move_speed * delta_time)
+    if onkey[SDL_SCANCODE_S]: move_camera("backward", move_speed * delta_time)
+    if onkey[SDL_SCANCODE_A]: move_camera("left", move_speed * delta_time)
+    if onkey[SDL_SCANCODE_D]: move_camera("right", move_speed * delta_time)
+    if onkey[SDL_SCANCODE_SPACE]: move_camera("up", move_speed * delta_time)
+    if onkey[SDL_SCANCODE_LCTRL]: move_camera("down", move_speed * delta_time)
     if onkey[SDL_SCANCODE_UP]: rotate_object("X",2 * delta_time)
     if onkey[SDL_SCANCODE_DOWN]: rotate_object("X",-2 * delta_time)
     if onkey[SDL_SCANCODE_LEFT]: rotate_object("Y",2 * delta_time)
@@ -403,6 +402,5 @@ while running:
     if onkey[SDL_SCANCODE_J]: rotate_camera("left",2 * delta_time)
     if onkey[SDL_SCANCODE_L]: rotate_camera("right",2 * delta_time)
     render_objects()
-    last_delta_time = time.time()
 
 SDL_Quit()
