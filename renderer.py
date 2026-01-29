@@ -22,6 +22,7 @@ LIGHT_BLUE = 0x23accf
 RED = 0xf70000
 FOV = 90
 scale = (HEIGHT / 2) / math.tan(math.radians(FOV) / 2) # the projective proj scaling factor (higher = less stretched, lower = more stretch)
+last_delta_time = 0
 
 # init the window
 SDL_Init(SDL_INIT_VIDEO)
@@ -379,6 +380,8 @@ render_objects()  # render the initial frame
 
 running = True
 while running:
+    delta_time = (time.time() - last_delta_time) * 100000
+
     event = SDL_Event()
     while SDL_PollEvent(ctypes.byref(event)):
         if event.type == SDL_QUIT:
@@ -391,14 +394,15 @@ while running:
     if onkey[SDL_SCANCODE_D]: move_camera("right", move_speed)
     if onkey[SDL_SCANCODE_SPACE]: move_camera("up", move_speed)
     if onkey[SDL_SCANCODE_LCTRL]: move_camera("down", move_speed)
-    if onkey[SDL_SCANCODE_UP]: rotate_object("X",2)
-    if onkey[SDL_SCANCODE_DOWN]: rotate_object("X",-2)
-    if onkey[SDL_SCANCODE_LEFT]: rotate_object("Y",2)
-    if onkey[SDL_SCANCODE_RIGHT]: rotate_object("Y",-2)
-    if onkey[SDL_SCANCODE_I]: rotate_camera("up",2)
-    if onkey[SDL_SCANCODE_K]: rotate_camera("down",2)
-    if onkey[SDL_SCANCODE_J]: rotate_camera("left",2)
-    if onkey[SDL_SCANCODE_L]: rotate_camera("right",2)
+    if onkey[SDL_SCANCODE_UP]: rotate_object("X",2 * delta_time)
+    if onkey[SDL_SCANCODE_DOWN]: rotate_object("X",-2 * delta_time)
+    if onkey[SDL_SCANCODE_LEFT]: rotate_object("Y",2 * delta_time)
+    if onkey[SDL_SCANCODE_RIGHT]: rotate_object("Y",-2 * delta_time)
+    if onkey[SDL_SCANCODE_I]: rotate_camera("up",2 * delta_time)
+    if onkey[SDL_SCANCODE_K]: rotate_camera("down",2 * delta_time)
+    if onkey[SDL_SCANCODE_J]: rotate_camera("left",2 * delta_time)
+    if onkey[SDL_SCANCODE_L]: rotate_camera("right",2 * delta_time)
     render_objects()
+    last_delta_time = time.time()
 
 SDL_Quit()
