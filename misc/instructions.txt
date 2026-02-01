@@ -5,3 +5,5 @@ If you don't see a dist folder, run "pyinstaller renderer.py"
 Terminal stuff to run: .\compile.bat to compile to .exe in dist folder, .\run.bat to run the .exe
 
 python renderer.py to debug. If its all good, then .\compile
+
+helpful git commands: git show <commit hash>:<filename.py> to directly view the code during the time of that commit
