@@ -12,7 +12,31 @@ https://lukems.github.io/py-sdl2/modules/index.html for docs
 
 todo: Mouse movements for camera pitch and yaw instead of IJKL
 '''
-WINDOW_SIZE = 400
+
+def choose_window_size():
+    buttons = (SDL_MessageBoxButtonData * 3)(
+        SDL_MessageBoxButtonData(0, 1, b"400x400"),
+        SDL_MessageBoxButtonData(0, 2, b"600x600"),
+        SDL_MessageBoxButtonData(0, 3, b"800x800"),
+    )
+
+    messagebox = SDL_MessageBoxData(
+        SDL_MESSAGEBOX_INFORMATION,
+        None,
+        b"Window Size",
+        b"Choose a window size",
+        3,
+        buttons,
+        None
+    )
+
+    buttonid = ctypes.c_int()
+    SDL_ShowMessageBox(messagebox, ctypes.byref(buttonid))
+
+    return {1: 400, 2: 600, 3: 800}.get(buttonid.value, 400)  # default fallback
+
+raw = input("Enter window size (Enter for default): ").strip()
+WINDOW_SIZE = WINDOW_SIZE = int(raw) if raw else 400 # replace this with WINDOW_SIZE = choose_window_size() for a prompt. couldnt figure out input fields so presets for now
 WIDTH = WINDOW_SIZE
 HEIGHT = WINDOW_SIZE
 
@@ -94,7 +118,7 @@ frame_count = 0
 
 camera_pos = [0, 0, -15]
 object_rot = [0, 0]
-move_speed = 0.5
+move_speed = 0.25
 near_clip = 0.01
 far_clip = 100
 aspect_ratio = WIDTH
@@ -200,7 +224,7 @@ def rotate_object(axis, angle_change):
     if debug == True:
         print("[Debug Logs]: " + str(camera_pos[0]) + "x " + str(camera_pos[1]) + "y " + str(camera_pos[2]) + "z" + " | Pitch: " + str(object_rot[0]) + " | Yaw: " + str(object_rot[1]) + " | Sprint: " + str(sprinting) + " | Speed: " + str(move_speed))
 
-def rotate_camera(direction, degrees):
+def rotate_camera(direction, degrees): # technically not rotating the camera, it only gives a camera rotation illusion if you are in the middle of the objs
     global objects, camera_pos, object_rot
     
     # calculate the center of the platform (average position of all blocks)
@@ -217,15 +241,17 @@ def rotate_camera(direction, degrees):
 
     # define the rotation matrix for the requested direction
     rotation_matrix = None
-    if direction == "up" and object_rot[0] > -90: # object_rot[0] = pitch
+    # if direction == "up" and object_rot[0] > -90: for up max lookup angle
+    if direction == "up": # object_rot[0] = pitch
         rotation_matrix = [
             [1, 0, 0],
             [0, math.cos(math.radians(-degrees)), -math.sin(math.radians(-degrees))],
             [0, math.sin(math.radians(-degrees)), math.cos(math.radians(-degrees))]  # update to x axis rotation
         ]
         rotate_object("X", -2 * delta_time)  # counter act the world rotation with object rotation
-        
-    elif direction == "down" and object_rot[0] < 28:
+    
+    # elif direction == "down" and object_rot[0] < 28: for max lookdown angle
+    elif direction == "down":
         rotation_matrix = [
             [1, 0, 0],
             [0, math.cos(math.radians(degrees)), -math.sin(math.radians(degrees))],
