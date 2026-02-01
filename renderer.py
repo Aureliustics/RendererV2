@@ -223,7 +223,7 @@ def rotate_camera(direction, degrees):
             [0, math.cos(math.radians(-degrees)), -math.sin(math.radians(-degrees))],
             [0, math.sin(math.radians(-degrees)), math.cos(math.radians(-degrees))]  # update to x axis rotation
         ]
-        rotate_object("X", -2)  # counter act the world rotation with object rotation
+        rotate_object("X", -2 * delta_time)  # counter act the world rotation with object rotation
         
     elif direction == "down" and object_rot[0] < 28:
         rotation_matrix = [
@@ -231,7 +231,7 @@ def rotate_camera(direction, degrees):
             [0, math.cos(math.radians(degrees)), -math.sin(math.radians(degrees))],
             [0, math.sin(math.radians(degrees)), math.cos(math.radians(degrees))]  # update to x axis rotation
         ]
-        rotate_object("X", 2)  # counter act the world rotation with object rotation
+        rotate_object("X", 2 * delta_time)  # counter act the world rotation with object rotation
         
     elif direction == "left":
         rotation_matrix = [
@@ -239,7 +239,7 @@ def rotate_camera(direction, degrees):
             [0, 1, 0],
             [-math.sin(math.radians(degrees)), 0, math.cos(math.radians(degrees))]  # update to y axis rotation
         ]
-        rotate_object("Y", 2)  # counter act the world rotation with object rotation
+        rotate_object("Y", 2 * delta_time)  # counter act the world rotation with object rotation
         
     elif direction == "right":
         rotation_matrix = [
@@ -247,7 +247,7 @@ def rotate_camera(direction, degrees):
             [0, 1, 0],
             [-math.sin(math.radians(-degrees)), 0, math.cos(math.radians(-degrees))]  # update to y axis rotation
         ]
-        rotate_object("Y", -2)  # counter act the world rotation with object rotation
+        rotate_object("Y", -2 * delta_time)  # counter act the world rotation with object rotation
 
     if rotation_matrix is None: # catch crash if rotation matrix is None
         return
@@ -397,10 +397,10 @@ while running:
     if onkey[SDL_SCANCODE_DOWN]: rotate_object("X",-2 * delta_time)
     if onkey[SDL_SCANCODE_LEFT]: rotate_object("Y",2 * delta_time)
     if onkey[SDL_SCANCODE_RIGHT]: rotate_object("Y",-2 * delta_time)
-    if onkey[SDL_SCANCODE_I]: rotate_camera("up",2 * delta_time)
-    if onkey[SDL_SCANCODE_K]: rotate_camera("down",2 * delta_time)
-    if onkey[SDL_SCANCODE_J]: rotate_camera("left",2 * delta_time)
-    if onkey[SDL_SCANCODE_L]: rotate_camera("right",2 * delta_time)
+    if onkey[SDL_SCANCODE_I]: rotate_camera("up",2)
+    if onkey[SDL_SCANCODE_K]: rotate_camera("down",2)
+    if onkey[SDL_SCANCODE_J]: rotate_camera("left",2)
+    if onkey[SDL_SCANCODE_L]: rotate_camera("right",2)
     render_objects()
 
 SDL_Quit()
