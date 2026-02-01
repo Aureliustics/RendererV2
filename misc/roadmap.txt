@@ -1,5 +1,4 @@
 Todo:
-- Delta time for consistent movement speed
 - VSync or just an fps limiter to test if delta time works
 - Dynamic window size
 - Prompt for window size (with PYSDL2 messagebox)
