@@ -35,10 +35,10 @@ def choose_window_size():
 
     return {1: 400, 2: 600, 3: 800}.get(buttonid.value, 400)  # default fallback
 
-raw = input("Enter window size (Enter for default): ").strip()
-WINDOW_SIZE = WINDOW_SIZE = int(raw) if raw else 400 # replace this with WINDOW_SIZE = choose_window_size() for a prompt. couldnt figure out input fields so presets for now
-WIDTH = WINDOW_SIZE
-HEIGHT = WINDOW_SIZE
+# raw = input("Enter window size (Enter for default): ").strip()
+# WINDOW_SIZE = WINDOW_SIZE = int(raw) if raw else 400 # replace this with WINDOW_SIZE = choose_window_size() for a prompt. couldnt figure out input fields so presets for now
+WIDTH = int(input("Enter window width (Enter for default): ").strip())
+HEIGHT = int(input("Enter window height (Enter for default): ").strip())
 
 WHITE = 0xFFFFFFFF
 GREEN = 0x05871f
@@ -54,7 +54,7 @@ window = SDL_CreateWindow(
     b"Renderer V2",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
-    WINDOW_SIZE, WINDOW_SIZE,
+    WIDTH, HEIGHT,
     SDL_WINDOW_SHOWN
 )
 renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED)
