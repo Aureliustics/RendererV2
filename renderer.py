@@ -35,10 +35,10 @@ def choose_window_size():
 
     return {1: 400, 2: 600, 3: 800}.get(buttonid.value, 400)  # default fallback
 
-# raw = input("Enter window size (Enter for default): ").strip()
-# WINDOW_SIZE = WINDOW_SIZE = int(raw) if raw else 400 # replace this with WINDOW_SIZE = choose_window_size() for a prompt. couldnt figure out input fields so presets for now
-WIDTH = int(input("Enter window width (Enter for default): ").strip())
-HEIGHT = int(input("Enter window height (Enter for default): ").strip())
+raw_width = input("Enter window width (Enter for default): ").strip()
+raw_height = input("Enter window height (Enter for default): ").strip()
+WIDTH = int(raw_width) if raw_width else 400 # prompts user for width and height for window
+HEIGHT = int(raw_height) if raw_height else 400
 
 WHITE = 0xFFFFFFFF
 GREEN = 0x05871f
