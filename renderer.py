@@ -59,6 +59,7 @@ window = SDL_CreateWindow(
 )
 renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED)
 texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT)
+SDL_SetRelativeMouseMode(SDL_TRUE) 
 
 # init frame buffer (think abt the frame buffer like a jiba image file, it stores pixel colour data from top left to bottom right of the screen)
 # the frame buffer is just our 1 dimensional chunk of memory which we can tell SDL to interpret it as pixels. SDL then copies that to the GPU where it is displayed
@@ -411,7 +412,11 @@ while running:
     while SDL_PollEvent(ctypes.byref(event)):
         if event.type == SDL_QUIT:
             running = False
-    # not great looking but i am still figuring out key inputs
+        elif event.type == SDL_MOUSEMOTION: # track mouse movement
+            mouse_dx = event.motion.xrel
+            mouse_dy = event.motion.yrel
+            print(f"[DEBUG]: Mouse movement deltas: X: {mouse_dx}, Y: {mouse_dy}")
+
     onkey = SDL_GetKeyboardState(None)
     if onkey[SDL_SCANCODE_W]: move_camera("forward", move_speed * delta_time)
     if onkey[SDL_SCANCODE_S]: move_camera("backward", move_speed * delta_time)
