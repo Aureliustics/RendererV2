@@ -231,38 +231,23 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
     # define the rotation matrix for the requested direction
     rotation_matrix = None
     # if direction == "up" and object_rot[0] > -90: for up max lookup angle
-    if direction == "up": # object_rot[0] = pitch
+    if direction == "x": # object_rot[0] = pitch
         rotation_matrix = [
             [1, 0, 0],
             [0, math.cos(math.radians(-degrees)), -math.sin(math.radians(-degrees))],
             [0, math.sin(math.radians(-degrees)), math.cos(math.radians(-degrees))]  # update to x axis rotation
         ]
-        rotate_object("X", -2 * delta_time)  # counter act the world rotation with object rotation
+        rotate_object("X", -degrees)  # counter act the world rotation with object rotation
+        print(degrees)
     
-    # elif direction == "down" and object_rot[0] < 28: for max lookdown angle
-    elif direction == "down":
-        rotation_matrix = [
-            [1, 0, 0],
-            [0, math.cos(math.radians(degrees)), -math.sin(math.radians(degrees))],
-            [0, math.sin(math.radians(degrees)), math.cos(math.radians(degrees))]  # update to x axis rotation
-        ]
-        rotate_object("X", 2 * delta_time)  # counter act the world rotation with object rotation
-        
-    elif direction == "left":
-        rotation_matrix = [
-            [math.cos(math.radians(degrees)), 0, math.sin(math.radians(degrees))],
-            [0, 1, 0],
-            [-math.sin(math.radians(degrees)), 0, math.cos(math.radians(degrees))]  # update to y axis rotation
-        ]
-        rotate_object("Y", 2 * delta_time)  # counter act the world rotation with object rotation
-        
-    elif direction == "right":
+    elif direction == "y":
         rotation_matrix = [
             [math.cos(math.radians(-degrees)), 0, math.sin(math.radians(-degrees))],
             [0, 1, 0],
             [-math.sin(math.radians(-degrees)), 0, math.cos(math.radians(-degrees))]  # update to y axis rotation
         ]
-        rotate_object("Y", -2 * delta_time)  # counter act the world rotation with object rotation
+        rotate_object("Y", -degrees)  # counter act the world rotation with object rotation
+        print(degrees)
 
     if rotation_matrix is None: # catch crash if rotation matrix is None
         return
@@ -403,6 +388,8 @@ while running:
         elif event.type == SDL_MOUSEMOTION: # track mouse movement
             mouse_dx = event.motion.xrel
             mouse_dy = event.motion.yrel
+            rotate_camera("x", mouse_dx)
+            rotate_camera("y", mouse_dy)
             print(f"[DEBUG]: Mouse movement deltas: X: {mouse_dx}, Y: {mouse_dy}")
 
     onkey = SDL_GetKeyboardState(None)
@@ -416,10 +403,6 @@ while running:
     if onkey[SDL_SCANCODE_DOWN]: rotate_object("X",-2 * delta_time)
     if onkey[SDL_SCANCODE_LEFT]: rotate_object("Y",2 * delta_time)
     if onkey[SDL_SCANCODE_RIGHT]: rotate_object("Y",-2 * delta_time)
-    if onkey[SDL_SCANCODE_I]: rotate_camera("up",2 * delta_time)
-    if onkey[SDL_SCANCODE_K]: rotate_camera("down",2 * delta_time)
-    if onkey[SDL_SCANCODE_J]: rotate_camera("left",2 * delta_time)
-    if onkey[SDL_SCANCODE_L]: rotate_camera("right",2 * delta_time)
     render_objects()
 
 SDL_Quit()
