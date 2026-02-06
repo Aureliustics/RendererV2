@@ -231,7 +231,7 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
     # define the rotation matrix for the requested direction
     rotation_matrix = None
     # if direction == "up" and object_rot[0] > -90: for up max lookup angle
-    if direction == "x": # object_rot[0] = pitch
+    if direction == "y": # object_rot[0] = pitch
         rotation_matrix = [
             [1, 0, 0],
             [0, math.cos(math.radians(-degrees)), -math.sin(math.radians(-degrees))],
@@ -240,7 +240,7 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
         rotate_object("X", -degrees)  # counter act the world rotation with object rotation
         print(degrees)
     
-    elif direction == "y":
+    elif direction == "x":
         rotation_matrix = [
             [math.cos(math.radians(-degrees)), 0, math.sin(math.radians(-degrees))],
             [0, 1, 0],
