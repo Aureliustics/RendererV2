@@ -228,18 +228,6 @@ def rotate_object(axis, angle_change):
 def rotate_camera(direction, degrees): # technically not rotating the camera, it only gives a camera rotation illusion if you are in the middle of the objs
     global objects, camera_pos, object_rot
     
-    # calculate the center of the platform (average position of all blocks)
-    platform_center = [0, 0, 0]
-    for obj in objects:
-        platform_center[0] += obj["position"][0]
-        platform_center[1] += obj["position"][1]
-        platform_center[2] += obj["position"][2]
-    
-    # find the average to get the center
-    platform_center[0] /= len(objects)
-    platform_center[1] /= len(objects)
-    platform_center[2] /= len(objects)
-
     # define the rotation matrix for the requested direction
     rotation_matrix = None
     # if direction == "up" and object_rot[0] > -90: for up max lookup angle
@@ -249,7 +237,7 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
             [0, math.cos(math.radians(-degrees)), -math.sin(math.radians(-degrees))],
             [0, math.sin(math.radians(-degrees)), math.cos(math.radians(-degrees))]  # update to x axis rotation
         ]
-        rotate_object("X", -2 * delta_time)  # counter act the world rotation with object rotation
+        #rotate_object("X", -2 * delta_time)  # counter act the world rotation with object rotation
     
     # elif direction == "down" and object_rot[0] < 28: for max lookdown angle
     elif direction == "down":
@@ -258,7 +246,7 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
             [0, math.cos(math.radians(degrees)), -math.sin(math.radians(degrees))],
             [0, math.sin(math.radians(degrees)), math.cos(math.radians(degrees))]  # update to x axis rotation
         ]
-        rotate_object("X", 2 * delta_time)  # counter act the world rotation with object rotation
+        #rotate_object("X", 2 * delta_time)  # counter act the world rotation with object rotation
         
     elif direction == "left":
         rotation_matrix = [
@@ -266,7 +254,7 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
             [0, 1, 0],
             [-math.sin(math.radians(degrees)), 0, math.cos(math.radians(degrees))]  # update to y axis rotation
         ]
-        rotate_object("Y", 2 * delta_time)  # counter act the world rotation with object rotation
+        #rotate_object("Y", 2 * delta_time)  # counter act the world rotation with object rotation
         
     elif direction == "right":
         rotation_matrix = [
@@ -274,7 +262,7 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
             [0, 1, 0],
             [-math.sin(math.radians(-degrees)), 0, math.cos(math.radians(-degrees))]  # update to y axis rotation
         ]
-        rotate_object("Y", -2 * delta_time)  # counter act the world rotation with object rotation
+        #rotate_object("Y", -2 * delta_time)  # counter act the world rotation with object rotation
 
     if rotation_matrix is None: # catch crash if rotation matrix is None
         return
@@ -285,9 +273,9 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
         
         # translate the object so the center of the platform is at the origin
         translated_position = [
-            position[0] - platform_center[0],
-            position[1] - platform_center[1],
-            position[2] - platform_center[2]
+            position[0] - camera_pos[0],
+            position[1] - camera_pos[1],
+            position[2] - camera_pos[2]
         ]
 
         # apply the rotation matrix to the translated position
@@ -299,9 +287,9 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
 
         # translate the position back from the origin to the platform center
         new_position = [
-            rotated_position[0][0] + platform_center[0],
-            rotated_position[1][0] + platform_center[1],
-            rotated_position[2][0] + platform_center[2]
+            rotated_position[0][0] + camera_pos[0],
+            rotated_position[1][0] + camera_pos[1],
+            rotated_position[2][0] + camera_pos[2]
         ]
 
         # update the objects position
