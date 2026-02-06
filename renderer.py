@@ -237,7 +237,7 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
             [0, math.cos(math.radians(-degrees)), -math.sin(math.radians(-degrees))],
             [0, math.sin(math.radians(-degrees)), math.cos(math.radians(-degrees))]  # update to x axis rotation
         ]
-        #rotate_object("X", -2 * delta_time)  # counter act the world rotation with object rotation
+        rotate_object("X", -2 * delta_time)  # counter act the world rotation with object rotation
     
     # elif direction == "down" and object_rot[0] < 28: for max lookdown angle
     elif direction == "down":
@@ -246,7 +246,7 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
             [0, math.cos(math.radians(degrees)), -math.sin(math.radians(degrees))],
             [0, math.sin(math.radians(degrees)), math.cos(math.radians(degrees))]  # update to x axis rotation
         ]
-        #rotate_object("X", 2 * delta_time)  # counter act the world rotation with object rotation
+        rotate_object("X", 2 * delta_time)  # counter act the world rotation with object rotation
         
     elif direction == "left":
         rotation_matrix = [
@@ -254,7 +254,7 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
             [0, 1, 0],
             [-math.sin(math.radians(degrees)), 0, math.cos(math.radians(degrees))]  # update to y axis rotation
         ]
-        #rotate_object("Y", 2 * delta_time)  # counter act the world rotation with object rotation
+        rotate_object("Y", 2 * delta_time)  # counter act the world rotation with object rotation
         
     elif direction == "right":
         rotation_matrix = [
@@ -262,7 +262,7 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
             [0, 1, 0],
             [-math.sin(math.radians(-degrees)), 0, math.cos(math.radians(-degrees))]  # update to y axis rotation
         ]
-        #rotate_object("Y", -2 * delta_time)  # counter act the world rotation with object rotation
+        rotate_object("Y", -2 * delta_time)  # counter act the world rotation with object rotation
 
     if rotation_matrix is None: # catch crash if rotation matrix is None
         return
