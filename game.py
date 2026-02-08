@@ -36,4 +36,4 @@ for i in range(platform_size): # draw grass layer
             #"color": block_color
         })
 
-renderer.render_objects
+renderer.init()

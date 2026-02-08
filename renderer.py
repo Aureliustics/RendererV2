@@ -410,47 +410,52 @@ def render_objects(): # new render pipeline: now takes all objs, transforms the 
 
 render_objects()  # render the initial frame
 
-running = True
-while running:
-    delta_time = (time.perf_counter() - last_delta_time) * 100
-    last_delta_time = time.perf_counter()
+def init():
+    global last_delta_time
+    running = True
+    while running:
+        delta_time = (time.perf_counter() - last_delta_time) * 100
+        last_delta_time = time.perf_counter()
 
-    event = SDL_Event()
-    while SDL_PollEvent(ctypes.byref(event)):
-        if event.type == SDL_QUIT:
-            running = False
-        elif event.type == SDL_MOUSEMOTION: # track mouse movement
-            mouse_dx = event.motion.xrel
-            mouse_dy = event.motion.yrel
+        event = SDL_Event()
+        while SDL_PollEvent(ctypes.byref(event)):
+            if event.type == SDL_QUIT:
+                running = False
+            elif event.type == SDL_MOUSEMOTION: # track mouse movement
+                mouse_dx = event.motion.xrel
+                mouse_dy = event.motion.yrel
 
-            object_rot[1] += mouse_dx * MOUSE_SENSITIVITY  # yaw
-            object_rot[0] += mouse_dy * MOUSE_SENSITIVITY  # pitch
+                object_rot[1] += mouse_dx * MOUSE_SENSITIVITY  # yaw
+                object_rot[0] += mouse_dy * MOUSE_SENSITIVITY  # pitch
 
-            # to prevent doing a 360 when looking up or down
-            object_rot[0] = max(-MAX_PITCH, min(MAX_PITCH, object_rot[0]))
+                # to prevent doing a 360 when looking up or down
+                object_rot[0] = max(-MAX_PITCH, min(MAX_PITCH, object_rot[0]))
 
-    onkey = SDL_GetKeyboardState(None)
+        onkey = SDL_GetKeyboardState(None)
 
-    forward = 0 # these will reset to 0 every frame since it is in the while loop
-    right = 0
-    vertical = 0
+        forward = 0 # these will reset to 0 every frame since it is in the while loop
+        right = 0
+        vertical = 0
 
-    if onkey[SDL_SCANCODE_W]: forward += move_speed * delta_time
-    if onkey[SDL_SCANCODE_S]: forward -= move_speed * delta_time
-    if onkey[SDL_SCANCODE_D]: right += move_speed * delta_time
-    if onkey[SDL_SCANCODE_A]: right -= move_speed * delta_time
+        if onkey[SDL_SCANCODE_W]: forward += move_speed * delta_time
+        if onkey[SDL_SCANCODE_S]: forward -= move_speed * delta_time
+        if onkey[SDL_SCANCODE_D]: right += move_speed * delta_time
+        if onkey[SDL_SCANCODE_A]: right -= move_speed * delta_time
 
-    if flying: # prob add an if jumping condition thats kinda like this but applies gravity
-        if onkey[SDL_SCANCODE_SPACE]: vertical -= move_speed * delta_time
-        if onkey[SDL_SCANCODE_LCTRL]: vertical += move_speed * delta_time
+        if flying: # prob add an if jumping condition thats kinda like this but applies gravity
+            if onkey[SDL_SCANCODE_SPACE]: vertical -= move_speed * delta_time
+            if onkey[SDL_SCANCODE_LCTRL]: vertical += move_speed * delta_time
 
-    if forward != 0 or right != 0 or vertical != 0: # if change in camera position (trigged by wasd) then apply directional movement
-        move_camera(forward, right, vertical) # since these params can be negative, it covers all 3 axis: forward (z), right(x), vertical (y)
-        
-    if onkey[SDL_SCANCODE_UP]: rotate_object("X",2 * delta_time)
-    if onkey[SDL_SCANCODE_DOWN]: rotate_object("X",-2 * delta_time)
-    if onkey[SDL_SCANCODE_LEFT]: rotate_object("Y",2 * delta_time)
-    if onkey[SDL_SCANCODE_RIGHT]: rotate_object("Y",-2 * delta_time)
-    render_objects()
+        if forward != 0 or right != 0 or vertical != 0: # if change in camera position (trigged by wasd) then apply directional movement
+            move_camera(forward, right, vertical) # since these params can be negative, it covers all 3 axis: forward (z), right(x), vertical (y)
 
-SDL_Quit()
+        if onkey[SDL_SCANCODE_UP]: rotate_object("X",2 * delta_time)
+        if onkey[SDL_SCANCODE_DOWN]: rotate_object("X",-2 * delta_time)
+        if onkey[SDL_SCANCODE_LEFT]: rotate_object("Y",2 * delta_time)
+        if onkey[SDL_SCANCODE_RIGHT]: rotate_object("Y",-2 * delta_time)
+        render_objects()
+
+    SDL_Quit()
+
+if __name__ == "__main__":
+    init()
