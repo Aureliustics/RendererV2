@@ -238,7 +238,6 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
             [0, math.sin(math.radians(-degrees)), math.cos(math.radians(-degrees))]  # update to x axis rotation
         ]
         rotate_object("X", -degrees)  # counter act the world rotation with object rotation
-        print(degrees)
     
     elif direction == "x":
         rotation_matrix = [
@@ -247,7 +246,6 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
             [-math.sin(math.radians(-degrees)), 0, math.cos(math.radians(-degrees))]  # update to y axis rotation
         ]
         rotate_object("Y", -degrees)  # counter act the world rotation with object rotation
-        print(degrees)
 
     if rotation_matrix is None: # catch crash if rotation matrix is None
         return
