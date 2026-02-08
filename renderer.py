@@ -431,7 +431,7 @@ while running:
 
     onkey = SDL_GetKeyboardState(None)
 
-    forward = 0
+    forward = 0 # these will reset to 0 every frame since it is in the while loop
     right = 0
     vertical = 0
 
@@ -444,8 +444,9 @@ while running:
         if onkey[SDL_SCANCODE_SPACE]: vertical -= move_speed * delta_time
         if onkey[SDL_SCANCODE_LCTRL]: vertical += move_speed * delta_time
 
-    if forward or right or vertical: # if change in camera position (trigged by wasd) then apply directional movement
+    if forward != 0 or right != 0 or vertical != 0: # if change in camera position (trigged by wasd) then apply directional movement
         move_camera(forward, right, vertical) # since these params can be negative, it covers all 3 axis: forward (z), right(x), vertical (y)
+        
     if onkey[SDL_SCANCODE_UP]: rotate_object("X",2 * delta_time)
     if onkey[SDL_SCANCODE_DOWN]: rotate_object("X",-2 * delta_time)
     if onkey[SDL_SCANCODE_LEFT]: rotate_object("Y",2 * delta_time)
