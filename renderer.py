@@ -47,6 +47,8 @@ RED = 0xf70000
 FOV = 90
 scale = (HEIGHT / 2) / math.tan(math.radians(FOV) / 2) # the projective proj scaling factor (higher = less stretched, lower = more stretch)
 last_delta_time = 0
+MOUSE_SENSITIVITY = 0.08
+MAX_PITCH = 89.0
 
 # init the window
 SDL_Init(SDL_INIT_VIDEO)
@@ -188,7 +190,7 @@ def check_collision(new_position):
             return True  # collision detected
 
     return False  # no collision
-
+'''
 def move_camera(direction, speed):
     global camera_pos, sprinting, move_speed, debug, collision, flying
     if direction == "forward" and not sprinting:
@@ -214,6 +216,30 @@ def move_camera(direction, speed):
         camera_pos = new_position
     if debug:
         print(camera_pos)
+'''
+
+# rewrote move camera function so that it can translate camera coords to world coords so WASD works based on your look vector
+# also bc the old one was a mess ngl
+def move_camera(forward_amount, right_amount, vertical_amount = 0):
+    global camera_pos
+
+    yaw = math.radians(-object_rot[1])
+
+    # get camera aligned vectors
+    forward_x = -math.sin(yaw)
+    forward_z =  math.cos(yaw)
+
+    right_x =  math.cos(yaw)
+    right_z =  math.sin(yaw)
+
+    new_position = [
+        camera_pos[0] + forward_x * forward_amount + right_x * right_amount,
+        camera_pos[1] + vertical_amount,
+        camera_pos[2] + forward_z * forward_amount + right_z * right_amount
+    ]
+
+    if not check_collision(new_position) or not collision:
+        camera_pos = new_position
 
 def rotate_object(axis, angle_change):
     global object_rot
@@ -279,13 +305,15 @@ def rotate_camera(direction, degrees): # technically not rotating the camera, it
         obj["position"] = new_position
 
 def rotate_vertex(vertex_x, vertex_y, vertex_z, sin_pitch, cos_pitch, sin_yaw, cos_yaw):
-    # rotate camera pitch (x axis)
-    rotated_y = vertex_y * cos_pitch - vertex_z * sin_pitch
-    rotated_z = vertex_y * sin_pitch + vertex_z * cos_pitch
+    # rotate camera yaw aka y axis
+    yawed_x = vertex_x * cos_yaw - vertex_z * sin_yaw
+    yawed_z = vertex_x * sin_yaw + vertex_z * cos_yaw
 
-    #rotate camera yaw (y axis)
-    rotated_x = vertex_x * cos_yaw + rotated_z * sin_yaw
-    rotated_z = -vertex_x * sin_yaw + rotated_z * cos_yaw
+    # rotate camera pitch aka x axis
+    rotated_y = vertex_y * cos_pitch - yawed_z * sin_pitch
+    rotated_z = vertex_y * sin_pitch + yawed_z * cos_pitch
+
+    rotated_x = yawed_x
 
     return rotated_x, rotated_y, rotated_z
 
@@ -335,13 +363,21 @@ def render_objects(): # new render pipeline: now takes all objs, transforms the 
         projected_vertices = [None] * len(Vertices) # store the projected 2D pos for each vertex
 
         for vertex_index, (vertex_x, vertex_y, vertex_z) in enumerate(Vertices):
-            # rotate based on orientation of camera
-            rotated_x, rotated_y, rotated_z = rotate_vertex(vertex_x, vertex_y, vertex_z, sin_pitch, cos_pitch, sin_yaw, cos_yaw)
 
-            # translate each vertex to camera space
-            camera_space_x = rotated_x + object_x - camera_x
-            camera_space_y = rotated_y + object_y - camera_y
-            camera_space_z = rotated_z + object_z - camera_z
+            world_x = vertex_x + object_x # rotate based on orientation of camera
+            world_y = vertex_y + object_y
+            world_z = vertex_z + object_z
+
+            rel_x = world_x - camera_x # move world pos into relative camera space
+            rel_y = world_y - camera_y
+            rel_z = world_z - camera_z
+
+            # rotate camera space
+            rot_x, rot_y, rot_z = rotate_vertex(rel_x, rel_y, rel_z,sin_pitch, cos_pitch,sin_yaw, cos_yaw)
+
+            camera_space_x = rot_x
+            camera_space_y = rot_y
+            camera_space_z = rot_z
 
             # new clipping implemented for camera space system
             if camera_space_z <= near_clip or camera_space_z >= far_clip:
@@ -386,17 +422,30 @@ while running:
         elif event.type == SDL_MOUSEMOTION: # track mouse movement
             mouse_dx = event.motion.xrel
             mouse_dy = event.motion.yrel
-            rotate_camera("x", mouse_dx)
-            rotate_camera("y", mouse_dy)
-            print(f"[DEBUG]: Mouse movement deltas: X: {mouse_dx}, Y: {mouse_dy}")
+
+            object_rot[1] += mouse_dx * MOUSE_SENSITIVITY  # yaw
+            object_rot[0] += mouse_dy * MOUSE_SENSITIVITY  # pitch
+
+            # to prevent doing a 360 when looking up or down
+            object_rot[0] = max(-MAX_PITCH, min(MAX_PITCH, object_rot[0]))
 
     onkey = SDL_GetKeyboardState(None)
-    if onkey[SDL_SCANCODE_W]: move_camera("forward", move_speed * delta_time)
-    if onkey[SDL_SCANCODE_S]: move_camera("backward", move_speed * delta_time)
-    if onkey[SDL_SCANCODE_A]: move_camera("left", move_speed * delta_time)
-    if onkey[SDL_SCANCODE_D]: move_camera("right", move_speed * delta_time)
-    if onkey[SDL_SCANCODE_SPACE]: move_camera("up", move_speed * delta_time)
-    if onkey[SDL_SCANCODE_LCTRL]: move_camera("down", move_speed * delta_time)
+
+    forward = 0
+    right = 0
+    vertical = 0
+
+    if onkey[SDL_SCANCODE_W]: forward += move_speed * delta_time
+    if onkey[SDL_SCANCODE_S]: forward -= move_speed * delta_time
+    if onkey[SDL_SCANCODE_D]: right += move_speed * delta_time
+    if onkey[SDL_SCANCODE_A]: right -= move_speed * delta_time
+
+    if flying: # prob add an if jumping condition thats kinda like this but applies gravity
+        if onkey[SDL_SCANCODE_SPACE]: vertical -= move_speed * delta_time
+        if onkey[SDL_SCANCODE_LCTRL]: vertical += move_speed * delta_time
+
+    if forward or right or vertical: # if change in camera position (trigged by wasd) then apply directional movement
+        move_camera(forward, right, vertical) # since these params can be negative, it covers all 3 axis: forward (z), right(x), vertical (y)
     if onkey[SDL_SCANCODE_UP]: rotate_object("X",2 * delta_time)
     if onkey[SDL_SCANCODE_DOWN]: rotate_object("X",-2 * delta_time)
     if onkey[SDL_SCANCODE_LEFT]: rotate_object("Y",2 * delta_time)
